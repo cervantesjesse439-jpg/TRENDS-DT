@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Tech - DT Housing Trends</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+        :root {
+            --bg-base: #12141a;
+            --bg-panel: #1a1c23;
+            --bg-header: #15171e;
+            --text-main: #e2e8f0;
+            --border-color: #2d313a;
+            
+            /* Colores de Disposición */
+            --color-scrap: #ef4444;    /* Rojo */
+            --color-retrabajo: #f59e0b; /* Ambar */
+            --color-total: #3b82f6;     /* Azul */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .font-condensed { font-family: 'Roboto Condensed', sans-serif; }
+        
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-panel {
+            background-color: var(--bg-header);
+            border-bottom: 2px solid var(--color-total);
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #15171e;
+            border-radius: 6px 6px 0 0;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #3f4452; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        @keyframes pulse-green {
+            0% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+            50% { opacity: 0.4; box-shadow: 0 0 2px #10b981; }
+            100% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+        }
+        .live-dot {
+            width: 8px; height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-green 1.5s infinite;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th {
+            background-color: #15171e;
+            color: #64748b;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; z-index: 10;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            white-space: nowrap;
+        }
+        tr:hover td { background-color: rgba(255,255,255,0.03); }
+        
+        .stat-value { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1); cursor: pointer; opacity: 0.7;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem top 50%;
+            background-size: 0.65rem auto;
+            padding-right: 1.5rem;
+        }
+
+        .pulse-icon { animation: pulseIcon 1.5s infinite; }
+        @keyframes pulseIcon {
+            0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(59,130,246,0); }
+            50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(59,130,246,0.6); }
+            100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(59,130,246,0); }
+        }
+
+        .apexcharts-pie-series path[data\:selected="true"],
+        .apexcharts-pie-series path[selected="true"] {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+            transition: all 0.3s ease;
+        }
+        .apexcharts-pie-series path { transition: fill 0.3s ease; }
+
+        .table-fullscreen {
+            position: fixed !important; inset: 0 !important; z-index: 100 !important;
+            border-radius: 0 !important; background-color: var(--bg-base) !important;
+            margin: 0 !important; padding: 12px !important; display: flex !important; flex-direction: column !important;
+        }
+    </style>
+</head>
+<body class="lg:h-screen lg:overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="header-panel flex flex-col xl:flex-row justify-between items-start xl:items-center px-4 py-3 gap-4 flex-shrink-0 z-20 shadow-md">
+        
+        <div class="flex items-center gap-3 w-full xl:w-auto">
+            <div class="w-10 h-10 bg-blue-600 flex items-center justify-center text-white text-xl rounded-sm shadow-[0_0_10px_rgba(59,130,246,0.5)] flex-shrink-0">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-widest text-white m-0 leading-none">DT HOUSING</h1>
+                <p class="text-[9px] text-blue-400 font-bold tracking-widest m-0 uppercase mt-0.5">Analítica de Defectos</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap xl:flex-nowrap items-center w-full xl:w-auto gap-3">
+            <div class="flex items-center gap-2 bg-[#1a1c23] px-3 py-1.5 rounded border border-gray-700 shadow-inner flex-1 xl:flex-none">
+                <i class="fas fa-filter text-gray-500 text-[10px]"></i>
+                <select id="filter-disposition" onchange="handleDropdownFilter()" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer uppercase tracking-wider w-full xl:w-auto">
+                    <option value="ALL">Todas las Fallas</option>
+                    <option value="Scrap">Solo Scrap</option>
+                    <option value="Retrabajo">Solo Retrabajo</option>
+                </select>
+            </div>
+
+            <div class="flex flex-wrap sm:flex-nowrap items-center bg-[#1a1c23] p-1 rounded border border-gray-700 shadow-inner w-full xl:w-auto gap-1">
+                <div class="flex gap-1 border-r border-gray-700 pr-2">
+                    <button onclick="setDateRange('today')" class="bg-[#2d313a] hover:bg-[#3b82f6] text-gray-300 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">Hoy</button>
+                    <button onclick="setDateRange('7days')" class="bg-[#2d313a] hover:bg-[#3b82f6] text-gray-300 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">7 Días</button>
+                    <button onclick="setDateRange('30days')" class="bg-[#2d313a] hover:bg-[#3b82f6] text-gray-300 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">30 Días</button>
+                </div>
+                <div class="flex items-center gap-2 px-2 py-1 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-gray-500 font-bold uppercase mb-0.5">Desde</span>
+                        <input type="date" id="date-start" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer" onchange="processDataAndRender()">
+                    </div>
+                    <span class="text-gray-600 text-lg">-</span>
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-gray-500 font-bold uppercase mb-0.5">Hasta</span>
+                        <input type="date" id="date-end" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer" onchange="processDataAndRender()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between w-full xl:w-auto gap-4">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleFullscreen()" id="btn-fullscreen" class="bg-[#2d313a] hover:bg-[#3f4452] text-white border border-[#444] px-3 py-2.5 rounded text-xs font-bold transition shadow-sm" title="Pantalla Completa">
+                    <i class="fas fa-expand text-gray-400"></i>
+                </button>
+                <button onclick="downloadCSV()" class="bg-[#10b981]/20 hover:bg-[#10b981]/40 text-[#10b981] border border-[#10b981]/50 px-4 py-2.5 rounded text-xs font-bold transition flex items-center gap-2 shadow-sm uppercase tracking-wider">
+                    <i class="fas fa-file-excel"></i> Exportar
+                </button>
+            </div>
+            <div class="flex flex-col items-end min-w-[80px]">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <div class="live-dot" id="live-dot-indicator"></div>
+                    <span class="text-gray-300 text-[9px] font-bold tracking-widest uppercase" id="sync-status">Conectando</span>
+                </div>
+                <span id="header-time" class="text-white font-condensed font-bold text-sm tracking-wider">--:--:--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="flex-1 flex flex-col p-3 md:p-4 gap-4 overflow-y-auto lg:overflow-hidden bg-[#12141a]">
+        
+        <!-- FILA 1: KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-shrink-0">
+            <!-- TOTAL -->
+            <div class="panel flex flex-col relative border-t-4 md:border-t-0 md:border-l-4 border-blue-500" id="kpi-panel-total">
+                <div class="section-title text-gray-400">
+                    <span>TOTAL FALLAS (SELECCIÓN)</span>
+                    <i class="fas fa-globe text-gray-600"></i>
+                </div>
+                <div class="flex-1 flex items-center justify-between px-4 py-3">
+                    <span class="text-4xl md:text-5xl stat-value text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" id="kpi-total">0</span>
+                    <div class="text-right">
+                        <span class="block text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-wider">Eventos Base</span>
+                        <span class="block text-lg md:text-xl font-bold text-gray-400" id="kpi-registros">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCRAP -->
+            <div class="panel flex flex-col border-t-4 md:border-t-0 md:border-l-4 border-red-500 transition-opacity duration-300" id="kpi-panel-scrap">
+                <div class="section-title text-red-500"><span>SCRAP</span></div>
+                <div class="flex-1 flex items-center justify-between px-4 py-3">
+                    <span class="text-4xl md:text-5xl stat-value text-red-500" id="kpi-scrap">0</span>
+                    <i class="fas fa-trash-alt text-2xl text-red-900/50"></i>
+                </div>
+            </div>
+
+            <!-- RETRABAJO -->
+            <div class="panel flex flex-col border-t-4 md:border-t-0 md:border-l-4 border-amber-500 transition-opacity duration-300" id="kpi-panel-retrabajo">
+                <div class="section-title text-amber-500"><span>RETRABAJO</span></div>
+                <div class="flex-1 flex items-center justify-between px-4 py-3">
+                    <span class="text-4xl md:text-5xl stat-value text-amber-500" id="kpi-retrabajo">0</span>
+                    <i class="fas fa-tools text-2xl text-amber-900/50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILA 2: ANÁLISIS UNIFICADO -->
+        <div class="flex flex-col lg:flex-row gap-3 md:gap-4 flex-shrink-0 lg:h-[350px]">
+            
+            <!-- TOP DEFECTOS -->
+            <div class="panel flex flex-col lg:w-1/4 min-h-[250px]">
+                <div class="section-title text-gray-300">
+                    <span>TOP DAÑOS</span>
+                </div>
+                <div class="flex-1 p-4 flex flex-col justify-start gap-3 overflow-y-auto" id="top-defects-container">
+                    <div class="text-center text-gray-600 font-bold text-xs mt-10 uppercase tracking-widest">Calculando datos...</div>
+                </div>
+            </div>
+
+            <!-- TENDENCIA INTERACTIVA CON DONA FIJA A LA IZQUIERDA -->
+            <div class="panel flex flex-col lg:w-3/4 min-h-[300px] relative overflow-hidden" id="trend-panel-container">
+                <div class="section-title text-gray-300 z-10 bg-[#15171e] relative shadow-sm">
+                    <span id="lbl-trend-title">TENDENCIA TEMPORAL</span>
+                    <span class="text-gray-500 text-[9px] font-bold" id="lbl-trend-range">...</span>
+                </div>
+                
+                <div class="flex flex-1 flex-col md:flex-row relative bg-[#12141a]">
+                    
+                    <!-- LADO IZQUIERDO: LEYENDA Y DONA -->
+                    <div class="w-full md:w-[270px] flex-shrink-0 flex flex-col relative border-b md:border-b-0 md:border-r border-gray-800 bg-[#15171e]">
+                        
+                        <div class="flex justify-center gap-4 p-2.5 px-3 border-b border-gray-800/80 bg-[#1a1c23]/50">
+                            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]"></div><span class="text-[9px] font-bold text-gray-300 tracking-wider uppercase">Scrap</span></div>
+                            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]"></div><span class="text-[9px] font-bold text-gray-300 tracking-wider uppercase">Retrabajo</span></div>
+                        </div>
+
+                        <div class="flex-1 relative min-h-[220px]">
+                            <div class="absolute inset-0 p-2 flex items-center justify-center">
+                                <div id="chart-donut-container" class="w-full h-full relative z-0"></div>
+                            </div>
+                            
+                            <div id="donut-center" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[110px] h-[110px] rounded-full bg-[#1a1c23] border-2 border-gray-600 z-10 flex flex-col items-center justify-center pointer-events-none shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] transition-all duration-300">
+                                <!-- Contenido inyectado dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LADO DERECHO: GRÁFICA DE BARRAS / TENDENCIAS -->
+                    <div class="flex-1 relative w-full min-h-[250px] bg-[#12141a]">
+                        <div class="absolute inset-0 p-2">
+                            <div id="chart-trend-container" class="w-full h-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILA 3: TABLA DE DATOS DETALLADA -->
+        <div class="panel flex-1 flex flex-col min-h-[350px] lg:min-h-0 relative" id="table-card-wrapper">
+            <div class="section-title text-gray-300 flex-shrink-0 bg-[#15171e] z-20">
+                <div class="flex items-center gap-3">
+                    <span>BITÁCORA DE REGISTROS</span>
+                    <button id="btn-clear-filter" onclick="clearInteractiveSelection()" class="hidden bg-red-900/40 hover:bg-red-800/60 text-red-400 border border-red-500/50 px-2 py-0.5 rounded text-[9px] font-bold transition items-center gap-1 shadow-sm">
+                        <i class="fas fa-times"></i> Quitar Filtro: <span id="lbl-active-filter"></span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="table-record-count" class="text-gray-400 bg-[#12141a] px-3 py-1 rounded text-[10px] border border-gray-700">0 EVENTOS</span>
+                    <button onclick="toggleTableFullscreen()" id="btn-table-expand" class="bg-[#2d313a] hover:bg-[#3f4452] text-gray-300 hover:text-white px-2.5 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border border-gray-600" title="Expandir Bitácora">
+                        <i class="fas fa-expand-alt" id="expand-icon"></i> <span id="expand-text">Expandir</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-auto p-1 relative" id="table-scroll-area">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr>
+                            <th class="w-[15%]">FECHA / HORA</th>
+                            <th class="w-[15%]">MODELO</th>
+                            <th class="w-[20%]">TIPO DE DAÑO</th>
+                            <th class="w-[15%]">DISPOSICIÓN</th>
+                            <th class="w-[15%] text-center">CANTIDAD</th>
+                            <th class="w-[20%]">INSPECTOR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Filas dinámicas -->
+                    </tbody>
+                </table>
+                <div id="table-empty-state" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#1a1c23]/90 backdrop-blur-sm z-10">
+                    <i class="fas fa-folder-open text-4xl text-gray-600 mb-3"></i>
+                    <p class="font-bold tracking-widest uppercase text-xs text-gray-500">Cero registros en los filtros actuales.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let firebaseConfig = {
+            apiKey: "AIzaSyC6-UX4jsL4nfyprVw1PviZzHwnKbWLipA",
+            authDomain: "delta-9c75f.firebaseapp.com",
+            projectId: "delta-9c75f",
+            storageBucket: "delta-9c75f.firebasestorage.app",
+            messagingSenderId: "901178031655",
+            appId: "1:901178031655:web:5d7f41aedede352ea71802",
+            measurementId: "G-0QY5CJP0ED"
+        };
+
+        // Colección adaptada al nuevo modelo de DT Housing
+        const COL_RECORDS = "rechazos_dt_housing";
+
+        let allRecords = [];
+        let chartDonut, chartTrend;
+        
+        let activeDispositionContext = null; 
+        let isTableExpanded = false;
+        
+        const baseColors = ['#ef4444', '#f59e0b']; // Scrap, Retrabajo
+        const legendColorsForLines = ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#eab308', '#22c55e'];
+        
+        const getLocalDateString = (offsetDays = 0) => {
+            const date = new Date();
+            date.setDate(date.getDate() + offsetDays);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        };
+
+        setInterval(() => {
+            document.getElementById('header-time').textContent = new Date().toLocaleTimeString('es-MX', {hour12: false});
+        }, 1000);
+
+        window.setDateRange = function(type) {
+            document.getElementById('date-end').value = getLocalDateString(0); 
+            if (type === 'today') document.getElementById('date-start').value = getLocalDateString(0);
+            else if (type === '7days') document.getElementById('date-start').value = getLocalDateString(-6);
+            else if (type === '30days') document.getElementById('date-start').value = getLocalDateString(-29);
+            
+            if(allRecords.length > 0) processDataAndRender();
+        };
+        
+        document.getElementById('date-start').value = getLocalDateString(0);
+        document.getElementById('date-end').value = getLocalDateString(0);
+
+        async function initDashboard() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                
+                await signInAnonymously(auth);
+                const rechazosRef = collection(db, COL_RECORDS);
+
+                onSnapshot(rechazosRef, (snapshot) => {
+                    allRecords = [];
+                    snapshot.forEach(docSnap => allRecords.push({ id: docSnap.id, ...docSnap.data() }));
+                    
+                    const st = document.getElementById('sync-status');
+                    st.textContent = 'DATA LIVE'; st.style.color = '#10b981';
+                    document.getElementById('live-dot-indicator').style.backgroundColor = '#10b981';
+                    
+                    processDataAndRender();
+                }, (error) => {
+                    console.error(error);
+                    document.getElementById('sync-status').textContent = 'OFFLINE';
+                    document.getElementById('sync-status').style.color = '#ef4444';
+                    document.getElementById('live-dot-indicator').style.backgroundColor = '#ef4444';
+                });
+            } catch (error) {
+                console.error(error);
+                document.getElementById('sync-status').textContent = 'ERROR DB';
+            }
+        }
+
+        window.handleDropdownFilter = function() {
+            const val = document.getElementById('filter-disposition').value;
+            if (val === 'ALL') {
+                window.clearInteractiveSelection();
+            } else {
+                activeDispositionContext = val;
+                document.getElementById('lbl-active-filter').textContent = `${val}`;
+                document.getElementById('btn-clear-filter').classList.remove('hidden');
+                processDataAndRender();
+            }
+        };
+
+        window.clearInteractiveSelection = function() {
+            activeDispositionContext = null;
+            document.getElementById('btn-clear-filter').classList.add('hidden');
+            document.getElementById('filter-disposition').value = 'ALL'; 
+            
+            if(chartDonut) {
+                chartDonut.updateOptions({ colors: baseColors });
+                setTimeout(() => {
+                    const paths = document.querySelectorAll('.apexcharts-pie-series path');
+                    paths.forEach(p => {
+                        p.removeAttribute('selected');
+                        p.removeAttribute('data:selected');
+                    });
+                }, 10);
+            }
+            processDataAndRender();
+        }
+
+        function initCharts() {
+            const commonOptions = {
+                chart: { background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 400 } },
+                theme: { mode: 'dark' },
+                grid: { borderColor: '#2d313a', strokeDashArray: 3, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
+                tooltip: { theme: 'dark' }
+            };
+
+            const optionsDonut = {
+                ...commonOptions,
+                series: [0, 0],
+                labels: ['Scrap', 'Retrabajo'],
+                chart: { 
+                    ...commonOptions.chart, 
+                    type: 'donut', 
+                    height: '100%', 
+                    width: '100%',
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const label = config.w.globals.labels[config.dataPointIndex];
+                            if (activeDispositionContext === label) {
+                                window.clearInteractiveSelection();
+                            } else {
+                                activeDispositionContext = label;
+                                document.getElementById('filter-disposition').value = label;
+                                document.getElementById('lbl-active-filter').textContent = `${label}`;
+                                document.getElementById('btn-clear-filter').classList.remove('hidden');
+                                processDataAndRender();
+                            }
+                        }
+                    }
+                },
+                plotOptions: {
+                    pie: { 
+                        expandOnClick: false,
+                        donut: { size: '75%', labels: { show: false } } 
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { show: true, colors: ['#15171e'], width: 3 }, 
+                legend: { show: false }, 
+                tooltip: { enabled: true, theme: 'dark', y: { formatter: val => `${val} Unidades` } },
+                colors: baseColors,
+                states: {
+                    hover: { filter: { type: 'lighten', value: 0.1 } }, 
+                    active: { filter: { type: 'none' } } 
+                }
+            };
+            chartDonut = new ApexCharts(document.querySelector("#chart-donut-container"), optionsDonut);
+            chartDonut.render();
+
+            const optionsTrend = {
+                ...commonOptions,
+                series: [],
+                chart: { ...commonOptions.chart, type: 'line', stacked: true, height: '100%', width: '100%' },
+                stroke: { width: [], curve: 'smooth' }, 
+                plotOptions: { bar: { columnWidth: '45%', borderRadius: 2 } },
+                dataLabels: { enabled: false }, 
+                xaxis: { 
+                    type: 'category', categories: [], 
+                    labels: { style: { colors: '#64748b', fontSize: '9px', fontWeight: 700 } }, 
+                    axisBorder: { show: false }, axisTicks: { show: false } 
+                },
+                yaxis: { show: true, labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 700 } } },
+                legend: { show: false }, 
+            };
+            optionsTrend.grid.padding.left = 10;
+            chartTrend = new ApexCharts(document.querySelector("#chart-trend-container"), optionsTrend);
+            chartTrend.render();
+        }
+
+        window.processDataAndRender = function() {
+            const startStr = document.getElementById('date-start').value;
+            const endStr = document.getElementById('date-end').value;
+
+            if(!startStr || !endStr) return;
+            if (startStr > endStr) { document.getElementById('date-start').value = endStr; return processDataAndRender(); }
+
+            document.getElementById('lbl-trend-range').textContent = `${startStr.substring(5)} al ${endStr.substring(5)}`;
+
+            let baseRecords = allRecords.filter(r => r.dateString >= startStr && r.dateString <= endStr);
+            
+            let activeTableRecords = baseRecords;
+            if(activeDispositionContext) {
+                activeTableRecords = activeTableRecords.filter(r => r.disposition === activeDispositionContext);
+            }
+
+            let stats = { total: 0, scrap: 0, retrabajo: 0 };
+            let defectCounts = {};
+
+            baseRecords.forEach(r => {
+                let qty = parseInt(r.quantity) || 1; 
+                let disp = r.disposition || 'Scrap';
+                
+                if(disp === 'Scrap') stats.scrap += qty; else stats.retrabajo += qty;
+                
+                if (activeDispositionContext && disp === activeDispositionContext) {
+                    if (!defectCounts[r.damage]) defectCounts[r.damage] = { name: r.damage, qty: 0, disp: disp };
+                    defectCounts[r.damage].qty += qty;
+                } 
+                else if (!activeDispositionContext) {
+                    if (!defectCounts[r.damage]) defectCounts[r.damage] = { name: r.damage, qty: 0, disp: disp };
+                    defectCounts[r.damage].qty += qty;
+                }
+            });
+
+            stats.total = activeDispositionContext ? (activeDispositionContext === 'Scrap' ? stats.scrap : stats.retrabajo) : (stats.scrap + stats.retrabajo);
+            
+            document.getElementById('kpi-total').textContent = stats.total;
+            document.getElementById('kpi-registros').textContent = activeTableRecords.length;
+            
+            const opactiyLogic = (target) => (!activeDispositionContext || activeDispositionContext === target) ? '1' : '0.3';
+            document.getElementById('kpi-panel-scrap').style.opacity = opactiyLogic('Scrap'); document.getElementById('kpi-scrap').textContent = stats.scrap;
+            document.getElementById('kpi-panel-retrabajo').style.opacity = opactiyLogic('Retrabajo'); document.getElementById('kpi-retrabajo').textContent = stats.retrabajo;
+
+            if (chartDonut) {
+                chartDonut.updateSeries([stats.scrap, stats.retrabajo]);
+                
+                if (activeDispositionContext) {
+                    const idx = ['Scrap', 'Retrabajo'].indexOf(activeDispositionContext);
+                    const focusedColors = baseColors.map((color, index) => index === idx ? color : '#2d313a');
+                    chartDonut.updateOptions({ colors: focusedColors });
+                } else {
+                    chartDonut.updateOptions({ colors: baseColors });
+                }
+            }
+
+            const centerEl = document.getElementById('donut-center');
+            let trendLinesData = []; 
+
+            if (!activeDispositionContext) {
+                centerEl.style.boxShadow = 'inset 0 0 15px rgba(0,0,0,0.8)';
+                centerEl.style.borderColor = '#4b5563';
+                
+                centerEl.innerHTML = `
+                    <i class="fas fa-hand-pointer text-blue-400 text-3xl mb-1 pulse-icon drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"></i>
+                    <span class="text-[9px] font-bold text-gray-300 uppercase tracking-widest leading-tight text-center px-1 mt-1">Filtrar<br>Datos</span>
+                `;
+
+                if (chartTrend) {
+                    let trendLabels = [];
+                    let currDate = new Date(startStr + 'T12:00:00'); let endDateObj = new Date(endStr + 'T12:00:00');
+                    if (Math.ceil((endDateObj - currDate) / (1000 * 60 * 60 * 24)) > 60) { currDate = new Date(endDateObj); currDate.setDate(currDate.getDate() - 60); }
+
+                    let baseSeries = [
+                        {name:'Scrap', type:'column', data:[], color:'#ef4444'}, 
+                        {name:'Retrabajo', type:'column', data:[], color:'#f59e0b'}
+                    ];
+                    
+                    while (currDate <= endDateObj) {
+                        const dStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                        trendLabels.push(dStr.substring(5));
+                        const dayRecords = baseRecords.filter(r => r.dateString === dStr);
+                        
+                        let daily = {'Scrap':0, 'Retrabajo':0};
+                        dayRecords.forEach(r => daily[r.disposition || 'Scrap'] += (parseInt(r.quantity)||1));
+                        baseSeries.forEach(s => s.data.push(daily[s.name]));
+                        currDate.setDate(currDate.getDate() + 1);
+                    }
+
+                    chartTrend.updateOptions({ chart: { stacked: true }, xaxis: { categories: trendLabels }, stroke: { width: [0,0] } });
+                    chartTrend.updateSeries(baseSeries);
+                }
+
+            } else {
+                const activeColor = activeDispositionContext === 'Scrap' ? '#ef4444' : '#f59e0b';
+                centerEl.style.boxShadow = `0 0 25px ${activeColor}80, inset 0 0 15px rgba(0,0,0,0.9)`;
+                centerEl.style.borderColor = activeColor;
+
+                let defArray = Object.values(defectCounts).sort((a, b) => b.qty - a.qty);
+                let topDamages = defArray.slice(0, 3);
+                
+                let pClass = activeDispositionContext === 'Scrap' ? 'text-red-400 bg-red-900/50' : 'text-amber-400 bg-amber-900/50';
+
+                let centerHtml = `<span class="text-[10px] font-black px-3 py-0.5 rounded-full ${pClass} mb-1.5 shadow-sm tracking-widest border border-current">${activeDispositionContext}</span>`;
+                centerHtml += `<div class="flex flex-col gap-1 w-full px-2 mt-0.5">`;
+                
+                if (topDamages.length === 0) {
+                    centerHtml += `<span class="text-[9px] text-gray-500 font-bold text-center">Sin daños</span>`;
+                } else {
+                    topDamages.forEach((d, i) => {
+                        let color = legendColorsForLines[i % legendColorsForLines.length];
+                        trendLinesData.push({ name: d.name, color: color }); 
+                        centerHtml += `
+                            <div class="flex items-center gap-1.5 w-full bg-[#12141a]/60 rounded-md px-1.5 py-0.5 border border-white/5">
+                                <div class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${color}; box-shadow: 0 0 4px ${color}"></div>
+                                <span class="text-[8px] text-gray-200 truncate font-bold text-left flex-1" title="${d.name}">${d.name}</span>
+                            </div>
+                        `;
+                    });
+                }
+                centerHtml += `</div>`;
+                centerEl.innerHTML = centerHtml;
+
+                if (chartTrend) {
+                    let trendLabels = [];
+                    let currDate = new Date(startStr + 'T12:00:00'); let endDateObj = new Date(endStr + 'T12:00:00');
+                    if (Math.ceil((endDateObj - currDate) / (1000 * 60 * 60 * 24)) > 60) { currDate = new Date(endDateObj); currDate.setDate(currDate.getDate() - 60); }
+
+                    let barSeries = { name: `Volumen ${activeDispositionContext}`, type: 'column', data: [], color: activeColor };
+                    let lineSeries = trendLinesData.map(tData => ({ name: tData.name, type: 'line', data: [], color: tData.color }));
+
+                    while (currDate <= endDateObj) {
+                        const dStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                        trendLabels.push(dStr.substring(5));
+                        
+                        const dayRecords = baseRecords.filter(r => r.dateString === dStr && r.disposition === activeDispositionContext);
+                        
+                        let totalQty = 0;
+                        let dmgQtys = {}; trendLinesData.forEach(t => dmgQtys[t.name] = 0);
+                        
+                        dayRecords.forEach(r => {
+                            let q = parseInt(r.quantity) || 1;
+                            totalQty += q;
+                            if (dmgQtys[r.damage] !== undefined) dmgQtys[r.damage] += q;
+                        });
+                        
+                        barSeries.data.push(totalQty);
+                        lineSeries.forEach(ls => { ls.data.push(dmgQtys[ls.name]); });
+                        
+                        currDate.setDate(currDate.getDate() + 1);
+                    }
+                    
+                    let finalSeries = [barSeries, ...lineSeries];
+                    let strokeWidths = [0]; 
+                    lineSeries.forEach(() => strokeWidths.push(1.5)); 
+                    
+                    chartTrend.updateOptions({ 
+                        chart: { stacked: false }, 
+                        xaxis: { categories: trendLabels }, 
+                        stroke: { width: strokeWidths, curve: 'smooth' },
+                        fill: { opacity: [0.15, 1, 1, 1] }
+                    });
+                    chartTrend.updateSeries(finalSeries);
+                }
+            }
+
+            const topContainer = document.getElementById('top-defects-container');
+            let defArrayUI = Object.values(defectCounts).sort((a, b) => b.qty - a.qty);
+            let sortedDefectsUI = defArrayUI.slice(0, 6); 
+            
+            if (sortedDefectsUI.length === 0) {
+                topContainer.innerHTML = '<div class="text-center text-gray-500 font-bold text-xs mt-10 uppercase tracking-widest"><i class="fas fa-check-circle text-3xl mb-2 text-gray-700 block"></i> Cero Fallas</div>';
+            } else {
+                let maxQty = sortedDefectsUI[0].qty;
+                topContainer.innerHTML = sortedDefectsUI.map((def) => {
+                    let pct = (def.qty / maxQty) * 100;
+                    let lColor = def.disp === 'Scrap' ? '#ef4444' : '#f59e0b';
+                    return `
+                    <div class="flex items-center text-[10px] md:text-xs">
+                        <div class="w-[120px] md:w-[140px] truncate text-gray-300 font-bold uppercase pr-2" title="${def.name}">${def.name}</div>
+                        <div class="flex-1 bg-[#12141a] h-4 rounded overflow-hidden border border-gray-800 relative">
+                            <div class="h-full rounded shadow-inner" style="width: ${pct}%; background-color: ${lColor}"></div>
+                        </div>
+                        <div class="w-[30px] text-right font-condensed font-bold text-white text-sm">${def.qty}</div>
+                    </div>`;
+                }).join('');
+            }
+
+            renderTable(activeTableRecords);
+        };
+
+        window.toggleTableFullscreen = function() {
+            isTableExpanded = !isTableExpanded;
+            const wrapper = document.getElementById('table-card-wrapper');
+            const icon = document.getElementById('expand-icon');
+            const text = document.getElementById('expand-text');
+            const scrollArea = document.getElementById('table-scroll-area');
+
+            if (isTableExpanded) {
+                wrapper.classList.add('table-fullscreen');
+                icon.className = 'fas fa-compress-alt';
+                text.textContent = 'Minimizar';
+                scrollArea.style.maxHeight = 'none';
+            } else {
+                wrapper.classList.remove('table-fullscreen');
+                icon.className = 'fas fa-expand-alt';
+                text.textContent = 'Expandir';
+            }
+        };
+
+        function renderTable(records) {
+            const tbody = document.getElementById('table-body');
+            const emptyState = document.getElementById('table-empty-state');
+            document.getElementById('table-record-count').textContent = `${records.length} EVENTOS`;
+
+            if (records.length === 0) { tbody.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
+            emptyState.classList.add('hidden');
+            
+            const sortedRecords = [...records].sort((a, b) => b.timestamp - a.timestamp);
+
+            tbody.innerHTML = sortedRecords.map(r => {
+                const dObj = new Date(r.timestamp);
+                const timeStr = `${dObj.toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit'})} <span class="text-gray-600 mx-1">|</span> ${dObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+                
+                let badgeColor = r.disposition === 'Scrap' ? 'bg-red-900/30 text-red-400 border-red-800/50' : 'bg-amber-900/30 text-amber-400 border-amber-800/50';
+
+                return `<tr>
+                    <td class="font-condensed text-gray-400 text-[11px]">${timeStr}</td>
+                    <td class="font-bold text-gray-300 text-xs">${r.model || 'DT housing'} <br><span class="text-[9px] text-gray-500">${r.part || 'AEN75467211'}</span></td>
+                    <td class="text-gray-300 uppercase text-[10px] tracking-wider font-bold">${r.damage}</td>
+                    <td><span class="${badgeColor} border px-2.5 py-1 rounded text-[9px] tracking-widest uppercase shadow-sm font-bold">${r.disposition}</span></td>
+                    <td class="text-center font-condensed text-white text-sm font-bold bg-[#1a1c23]/50 border-x border-[#2d313a]">${r.quantity || 1}</td>
+                    <td class="text-gray-500 text-[10px] uppercase font-bold truncate max-w-[120px]"><i class="fas fa-user-tag text-gray-700 mr-1"></i> ${r.inspectorName || 'ANÓNIMO'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.downloadCSV = function() {
+            if (allRecords.length === 0) return alert("No hay datos para exportar.");
+            const startStr = document.getElementById('date-start').value; const endStr = document.getElementById('date-end').value;
+            
+            let exportData = allRecords.filter(r => r.dateString >= startStr && r.dateString <= endStr);
+            if (activeDispositionContext) exportData = exportData.filter(r => r.disposition === activeDispositionContext);
+            
+            const headers = ['FECHA', 'HORA', 'MODELO', 'DAÑO', 'DISPOSICION', 'CANTIDAD', 'INSPECTOR'];
+            const rows = exportData.sort((a, b) => b.timestamp - a.timestamp).map(r => {
+                const d = new Date(r.timestamp);
+                return [d.toLocaleDateString('es-MX'), d.toLocaleTimeString('es-MX'), r.model||'DT housing', r.damage, r.disposition, r.quantity||1, r.inspectorName||'Anónimo'].map(v => `"${v}"`).join(',');
+            });
+
+            const link = document.createElement("a");
+            link.setAttribute("href", URL.createObjectURL(new Blob(["\ufeff", [headers.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' })));
+            link.setAttribute("download", `Export_DTHousing_${activeDispositionContext||'GLOBAL'}_${startStr}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        };
+
+        window.toggleFullscreen = function() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); };
+        document.addEventListener('fullscreenchange', () => { document.getElementById('btn-fullscreen').innerHTML = !document.fullscreenElement ? '<i class="fas fa-expand text-gray-400"></i>' : '<i class="fas fa-compress text-blue-400"></i>'; });
+
+        setTimeout(() => { initCharts(); initDashboard(); }, 100);
+    </script>
+</body>
+</html>
