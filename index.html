@@ -2,354 +2,332 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Delta Tech - DT Housing QC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Tech - DT Housing Trends</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <style>
+        :root {
+            --bg-base: #12141a;
+            --bg-panel: #1a1c23;
+            --bg-header: #15171e;
+            --text-main: #e2e8f0;
+            --border-color: #2d313a;
+            
+            /* Colores de Disposición */
+            --color-scrap: #ef4444;    /* Rojo */
+            --color-retrabajo: #f59e0b; /* Ambar */
+            --color-total: #3b82f6;     /* Azul */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-            color: #1e293b;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
+        .font-condensed { font-family: 'Roboto Condensed', sans-serif; }
         
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 1);
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
-        
-        .glass-btn {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
+
+        .header-panel {
+            background-color: var(--bg-header);
+            border-bottom: 2px solid var(--color-total);
         }
-        .glass-btn:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
-        .glass-btn:active { transform: translateY(0); }
 
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .snap-x-mandatory { scroll-snap-type: x mandatory; }
-        .snap-center { scroll-snap-align: center; }
-
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .option-btn { transition: all 0.2s ease; border: 2px solid transparent; }
-        .option-btn.selected {
-            border-color: #2563eb; 
-            background: #eff6ff;
-            transform: scale(0.98);
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #15171e;
+            border-radius: 6px 6px 0 0;
         }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #3f4452; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        @keyframes pulse-green {
+            0% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+            50% { opacity: 0.4; box-shadow: 0 0 2px #10b981; }
+            100% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+        }
+        .live-dot {
+            width: 8px; height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-green 1.5s infinite;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th {
+            background-color: #15171e;
+            color: #64748b;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; z-index: 10;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            white-space: nowrap;
+        }
+        tr:hover td { background-color: rgba(255,255,255,0.03); }
         
-        .sync-flash { animation: syncFlash 1s ease-out; }
-        @keyframes syncFlash {
-            0% { color: #10b981; }
-            100% { color: inherit; }
+        .stat-value { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1); cursor: pointer; opacity: 0.7;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem top 50%;
+            background-size: 0.65rem auto;
+            padding-right: 1.5rem;
+        }
+
+        .pulse-icon { animation: pulseIcon 1.5s infinite; }
+        @keyframes pulseIcon {
+            0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(59,130,246,0); }
+            50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(59,130,246,0.6); }
+            100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(59,130,246,0); }
+        }
+
+        .apexcharts-pie-series path[data\:selected="true"],
+        .apexcharts-pie-series path[selected="true"] {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+            transition: all 0.3s ease;
+        }
+        .apexcharts-pie-series path { transition: fill 0.3s ease; }
+
+        .table-fullscreen {
+            position: fixed !important; inset: 0 !important; z-index: 100 !important;
+            border-radius: 0 !important; background-color: var(--bg-base) !important;
+            margin: 0 !important; padding: 12px !important; display: flex !important; flex-direction: column !important;
         }
     </style>
 </head>
-<body class="antialiased h-screen flex flex-col overflow-hidden relative selection:bg-blue-200">
+<body class="lg:h-screen lg:overflow-hidden">
 
-    <!-- Modales de Administrador -->
-    <div id="admin-onboarding-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[150] hidden flex-col items-center justify-center p-6 fade-in">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-8 flex flex-col items-center text-center relative">
-            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-3xl mb-4 border border-blue-100">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">Bienvenido a Delta Tech</h3>
-            <p class="text-slate-500 text-sm mb-6">Hemos detectado que es tu primera vez aquí. ¿Deseas registrarte como Administrador del sistema?</p>
-            <div class="flex w-full gap-3">
-                <button onclick="skipAdminOnboarding()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">No, soy Inspector</button>
-                <button onclick="startAdminRegistration()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md">Sí, Registrarme</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Gestión Admin -->
-    <div id="pin-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[160] hidden flex-col items-center justify-center p-4 fade-in">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col items-center relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closePinModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-            
-            <div id="admin-main-view" class="w-full flex flex-col items-center">
-                <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-xl mb-3"><i class="fas fa-users-cog"></i></div>
-                <h3 class="text-xl font-bold text-slate-800 mb-4">Administradores</h3>
-                <div id="admin-slots-list" class="w-full space-y-2 mb-5"></div>
-                <div id="admin-register-section" class="w-full border-t border-slate-200 pt-4 flex flex-col items-center">
-                    <input type="text" id="admin-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-2.5 text-sm font-medium focus:outline-none focus:border-blue-500" placeholder="Tu Nombre">
-                    <input type="password" id="pin-input" maxlength="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-4 text-center tracking-[1em] text-xl font-bold focus:outline-none focus:border-blue-500" placeholder="••••">
-                    <button onclick="verifyAndRegisterAdmin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md text-sm">Registrar PIN</button>
-                </div>
-            </div>
-            
-            <div id="admin-delete-confirm-view" class="w-full hidden flex-col items-center text-center py-2">
-                <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-600 text-xl mb-3"><i class="fas fa-user-times"></i></div>
-                <h4 class="text-lg font-bold text-slate-800 mb-1">Revocar Acceso</h4>
-                <p id="admin-delete-target-desc" class="text-xs text-slate-500 mb-4">Ingresa el PIN para eliminar este administrador.</p>
-                <input type="password" id="admin-delete-pin-input" maxlength="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 text-center tracking-[1em] text-xl font-bold focus:outline-none focus:border-red-400" placeholder="••••">
-                <div class="flex w-full gap-2">
-                    <button onclick="cancelRemoveAdmin()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition text-sm">Cancelar</button>
-                    <button onclick="confirmRemoveAdmin()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition shadow-md text-sm">Eliminar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Aprobación de Borrado -->
-    <div id="admin-approval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex-col items-center justify-center p-4 fade-in">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 flex flex-col relative max-h-[90vh]">
-            <div id="approval-list-view" class="flex flex-col h-full w-full">
-                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800">Solicitud de Borrado</h3>
-                        <p class="text-xs text-slate-500">Revisa los registros a eliminar</p>
-                    </div>
-                    <button onclick="skipCurrentApprovalModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-                </div>
-                <div id="approval-items-container" class="flex-1 overflow-y-auto space-y-2 mb-4 max-h-[48vh]"></div>
-                <div class="flex gap-2">
-                    <button onclick="rejectApprovalRequest()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl transition text-sm">Rechazar</button>
-                    <button onclick="showApprovalPinView()" class="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl transition shadow-md text-sm">Aprobar</button>
-                </div>
-            </div>
-            <div id="approval-pin-view" class="hidden flex-col items-center w-full py-4 text-center">
-                <h3 class="text-lg font-bold text-slate-800 mb-2">Confirmar con PIN</h3>
-                <input type="password" id="approval-pin-input" maxlength="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-5 text-center tracking-[1em] text-xl font-bold focus:outline-none focus:border-red-400" placeholder="••••">
-                <div class="flex w-full gap-2">
-                    <button onclick="cancelApprovalPinView()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl transition">Cancelar</button>
-                    <button onclick="executeApprovedDeletion()" class="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl transition shadow-md">Borrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Nombre Inspector -->
-    <div id="inspector-name-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center p-6 fade-in">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-8 flex flex-col items-center text-center relative">
-            <button onclick="closeInspectorModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-3xl mb-4 border border-blue-100"><i class="fas fa-id-badge"></i></div>
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">Asignar Inspector</h3>
-            <p class="text-slate-500 text-sm mb-6">Ingresa tu nombre para firmar los registros.</p>
-            <input type="text" id="inspector-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-800 font-medium focus:outline-none focus:border-blue-500" placeholder="Ej. Roberto Martínez">
-            <button onclick="saveInspectorName()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md">Asignarme</button>
-        </div>
-    </div>
-
-    <!-- MAIN DASHBOARD -->
-    <div id="main-dashboard" class="flex-1 w-full max-w-md mx-auto bg-white sm:border-x sm:border-slate-200 relative pb-24 h-full flex flex-col z-30 shadow-2xl">
+    <!-- HEADER -->
+    <header class="header-panel flex flex-col xl:flex-row justify-between items-start xl:items-center px-4 py-3 gap-4 flex-shrink-0 z-20 shadow-md">
         
-        <header class="bg-slate-900 text-white p-5 rounded-b-[2rem] shadow-lg sticky top-0 z-10 flex flex-col gap-3 relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
-            
-            <div class="flex justify-between items-center relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-inner"><i class="fas fa-industry text-sm"></i></div>
-                    <span class="font-bold tracking-wide">Delta Tech QC</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="openInspectorModal()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 transition">
-                        <i class="fas fa-user-tag text-blue-300"></i> <span id="current-inspector-display" class="truncate max-w-[80px]">Buscando...</span>
-                    </button>
-                    <button onclick="startAdminRegistration()" class="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-xs border border-white/10 transition">
-                        <i class="fas fa-cog text-slate-300"></i>
-                    </button>
-                </div>
+        <div class="flex items-center gap-3 w-full xl:w-auto">
+            <div class="w-10 h-10 bg-blue-600 flex items-center justify-center text-white text-xl rounded-sm shadow-[0_0_10px_rgba(59,130,246,0.5)] flex-shrink-0">
+                <i class="fas fa-chart-line"></i>
             </div>
-            
-            <div class="relative z-10 mt-2">
-                <h1 class="text-3xl font-black text-white leading-tight">DT housing</h1>
-                <p class="text-blue-200 text-sm font-medium tracking-wide mt-1">PN: AEN75467211 • COLOR: Blanco</p>
+            <div>
+                <h1 class="text-xl font-black tracking-widest text-white m-0 leading-none">DT HOUSING</h1>
+                <p class="text-[9px] text-blue-400 font-bold tracking-widest m-0 uppercase mt-0.5">Analítica de Calidad</p>
             </div>
-
-            <div class="flex justify-between items-end relative z-10 mt-2">
-                <span class="text-slate-400 text-xs font-medium" id="current-date-display">Cargando fecha...</span>
-                <span id="cloud-status" class="text-xs font-medium text-slate-400 flex items-center gap-1.5"><i class="fas fa-sync fa-spin"></i> Conectando...</span>
-            </div>
-        </header>
-
-        <main class="p-4 flex-1 overflow-y-auto">
-            <!-- Admin Link Button -->
-            <a id="btn-admin-dashboard" href="https://cervantesjesse439-jpg.github.io/Delta-Trends-DT/" class="hidden w-full mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-3 rounded-2xl shadow-md items-center justify-center gap-2 transition active:scale-95 font-bold text-sm">
-                <i class="fas fa-chart-bar"></i> Dashboard OQC Trends
-            </a>
-
-            <!-- Pending Approvals Alert -->
-            <button id="btn-pending-approvals-lobby" onclick="openPendingApprovalsManually()" class="hidden w-full bg-amber-50 border border-amber-200 text-amber-700 p-3 rounded-2xl mb-4 items-center justify-between transition active:scale-95 text-sm font-bold shadow-sm">
-                <span class="flex items-center gap-2"><i class="fas fa-bell text-amber-500 animate-pulse"></i> Borrados pendientes</span>
-                <span id="lobby-pending-count" class="bg-amber-500 text-white px-2 py-0.5 rounded-full text-xs">1</span>
-            </button>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <div class="col-span-2 bg-slate-50 border border-slate-200 p-4 rounded-2xl flex flex-col items-center justify-center">
-                    <span class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Total Movimientos Hoy</span>
-                    <span class="text-4xl font-black text-slate-800" id="stat-total">0</span>
-                </div>
-                <div class="bg-red-50 border border-red-100 p-4 rounded-2xl flex flex-col items-center justify-center">
-                    <span class="text-[10px] text-red-600 uppercase font-bold tracking-wider mb-1">Scrap</span>
-                    <span class="text-3xl font-black text-red-700" id="stat-scrap">0</span>
-                </div>
-                <div class="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex flex-col items-center justify-center">
-                    <span class="text-[10px] text-amber-600 uppercase font-bold tracking-wider mb-1">Retrabajo</span>
-                    <span class="text-3xl font-black text-amber-700" id="stat-retrabajo">0</span>
-                </div>
-            </div>
-
-            <!-- Header Bitacora -->
-            <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
-                <h3 class="text-lg font-bold text-slate-800">Bitácora</h3>
-                <div id="normal-actions">
-                    <button onclick="toggleDeleteMode()" class="text-xs text-slate-500 hover:text-red-600 font-bold transition flex items-center gap-1">
-                        <i class="fas fa-check-square"></i> Seleccionar
-                    </button>
-                </div>
-                <div id="delete-actions" class="hidden gap-2">
-                    <button onclick="toggleDeleteMode()" class="text-xs text-slate-500 font-bold px-2 py-1">Cancelar</button>
-                    <button onclick="requestDeletion()" id="btn-confirm-delete" class="text-xs text-white bg-red-500 px-3 py-1.5 rounded-lg shadow-sm font-bold opacity-50 pointer-events-none transition">
-                        Borrar (0)
-                    </button>
-                </div>
-            </div>
-            
-            <div id="bitacora-list" class="space-y-3 pb-8"></div>
-        </main>
-
-        <!-- Floating Button -->
-        <div class="fixed bottom-0 w-full max-w-md left-1/2 transform -translate-x-1/2 p-4 bg-gradient-to-t from-white via-white/90 to-transparent pb-6 z-40">
-            <button onclick="openWizard()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 px-6 rounded-2xl shadow-xl transform transition active:scale-95 flex items-center justify-center gap-3 text-lg border border-slate-700">
-                <i class="fas fa-plus-circle text-2xl text-blue-400"></i> Registrar
-            </button>
         </div>
-    </div>
 
-    <!-- WIZARD MODAL -->
-    <div id="wizard-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end fade-in">
-        <div class="bg-white w-full max-w-md mx-auto rounded-t-[2rem] h-[80vh] flex flex-col slide-up relative overflow-hidden shadow-2xl">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white z-10">
-                <div>
-                    <h3 class="text-xl font-black text-slate-800">Nuevo Registro</h3>
-                    <p class="text-xs font-bold text-blue-600 mt-0.5" id="wizard-step-text">Paso 1: Disposición</p>
-                </div>
-                <button onclick="closeWizard()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+        <div class="flex flex-wrap xl:flex-nowrap items-center w-full xl:w-auto gap-3">
+            <div class="flex items-center gap-2 bg-[#1a1c23] px-3 py-1.5 rounded border border-gray-700 shadow-inner flex-1 xl:flex-none">
+                <i class="fas fa-filter text-gray-500 text-[10px]"></i>
+                <select id="filter-disposition" onchange="handleDropdownFilter()" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer uppercase tracking-wider w-full xl:w-auto">
+                    <option value="ALL">Registros (Scrap y Retrabajo)</option>
+                    <option value="Scrap">Solo Scrap</option>
+                    <option value="Retrabajo">Solo Retrabajo</option>
+                </select>
             </div>
 
-            <div class="flex-1 overflow-hidden relative bg-slate-50/50">
-                <div class="flex w-full h-1 bg-slate-100 absolute top-0 left-0 z-10">
-                    <div id="wizard-progress" class="h-full bg-blue-600 transition-all duration-300" style="width: 33.33%"></div>
+            <div class="flex flex-wrap sm:flex-nowrap items-center bg-[#1a1c23] p-1 rounded border border-gray-700 shadow-inner w-full xl:w-auto gap-1">
+                <div class="flex gap-1 border-r border-gray-700 pr-2">
+                    <button onclick="setDateRange('today')" class="bg-[#2d313a] hover:bg-[#3b82f6] text-gray-300 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">Hoy</button>
+                    <button onclick="setDateRange('7days')" class="bg-[#2d313a] hover:bg-[#3b82f6] text-gray-300 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">7 Días</button>
+                    <button onclick="setDateRange('30days')" class="bg-[#2d313a] hover:bg-[#3b82f6] text-gray-300 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">30 Días</button>
                 </div>
+                <div class="flex items-center gap-2 px-2 py-1 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-gray-500 font-bold uppercase mb-0.5">Desde</span>
+                        <input type="date" id="date-start" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer" onchange="processDataAndRender()">
+                    </div>
+                    <span class="text-gray-600 text-lg">-</span>
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-gray-500 font-bold uppercase mb-0.5">Hasta</span>
+                        <input type="date" id="date-end" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer" onchange="processDataAndRender()">
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <div id="wizard-slider" class="w-full h-full flex overflow-x-auto snap-x-mandatory hide-scrollbar scroll-smooth">
+        <div class="flex items-center justify-between w-full xl:w-auto gap-4">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleFullscreen()" id="btn-fullscreen" class="bg-[#2d313a] hover:bg-[#3f4452] text-white border border-[#444] px-3 py-2.5 rounded text-xs font-bold transition shadow-sm" title="Pantalla Completa">
+                    <i class="fas fa-expand text-gray-400"></i>
+                </button>
+                <button onclick="downloadCSV()" class="bg-[#10b981]/20 hover:bg-[#10b981]/40 text-[#10b981] border border-[#10b981]/50 px-4 py-2.5 rounded text-xs font-bold transition flex items-center gap-2 shadow-sm uppercase tracking-wider">
+                    <i class="fas fa-file-excel"></i> Exportar
+                </button>
+            </div>
+            <div class="flex flex-col items-end min-w-[80px]">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <div class="live-dot" id="live-dot-indicator"></div>
+                    <span class="text-gray-300 text-[9px] font-bold tracking-widest uppercase" id="sync-status">Conectando</span>
+                </div>
+                <span id="header-time" class="text-white font-condensed font-bold text-sm tracking-wider">--:--:--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="flex-1 flex flex-col p-3 md:p-4 gap-4 overflow-y-auto lg:overflow-hidden bg-[#12141a]">
+        
+        <!-- FILA 1: KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-shrink-0">
+            <!-- TOTAL -->
+            <div class="panel flex flex-col relative border-t-4 md:border-t-0 md:border-l-4 border-blue-500" id="kpi-panel-total">
+                <div class="section-title text-gray-400">
+                    <span>TOTAL REGISTROS (SELECCIÓN)</span>
+                    <i class="fas fa-globe text-gray-600"></i>
+                </div>
+                <div class="flex-1 flex items-center justify-between px-4 py-3">
+                    <span class="text-4xl md:text-5xl stat-value text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" id="kpi-total">0</span>
+                    <div class="text-right">
+                        <span class="block text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-wider">Eventos Base</span>
+                        <span class="block text-lg md:text-xl font-bold text-gray-400" id="kpi-registros">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCRAP -->
+            <div class="panel flex flex-col border-t-4 md:border-t-0 md:border-l-4 border-red-500 transition-opacity duration-300" id="kpi-panel-scrap">
+                <div class="section-title text-red-500"><span>SCRAP</span></div>
+                <div class="flex-1 flex items-center justify-between px-4 py-3">
+                    <span class="text-4xl md:text-5xl stat-value text-red-500" id="kpi-scrap">0</span>
+                    <i class="fas fa-trash-alt text-2xl text-red-900/50"></i>
+                </div>
+            </div>
+
+            <!-- RETRABAJO -->
+            <div class="panel flex flex-col border-t-4 md:border-t-0 md:border-l-4 border-amber-500 transition-opacity duration-300" id="kpi-panel-retrabajo">
+                <div class="section-title text-amber-500"><span>RETRABAJO</span></div>
+                <div class="flex-1 flex items-center justify-between px-4 py-3">
+                    <span class="text-4xl md:text-5xl stat-value text-amber-500" id="kpi-retrabajo">0</span>
+                    <i class="fas fa-tools text-2xl text-amber-900/50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILA 2: ANÁLISIS UNIFICADO -->
+        <div class="flex flex-col flex-shrink-0 lg:h-[350px]">
+            <!-- TENDENCIA INTERACTIVA CON DONA FIJA A LA IZQUIERDA -->
+            <div class="panel flex flex-col w-full min-h-[300px] relative overflow-hidden h-full" id="trend-panel-container">
+                <div class="section-title text-gray-300 z-10 bg-[#15171e] relative shadow-sm">
+                    <span id="lbl-trend-title">TENDENCIA TEMPORAL (SCRAP vs RETRABAJO)</span>
+                    <span class="text-gray-500 text-[9px] font-bold" id="lbl-trend-range">...</span>
+                </div>
+                
+                <div class="flex flex-1 flex-col md:flex-row relative bg-[#12141a]">
                     
-                    <!-- PASO 1: Disposición -->
-                    <div class="min-w-full flex flex-col p-5 snap-center" id="step-1">
-                        <h4 class="text-lg font-bold mb-4 text-slate-800 text-center mt-4">¿Cuál es la disposición de la pieza?</h4>
-                        <div class="flex flex-col gap-4 w-full mt-4">
-                            <button class="option-btn glass-btn p-6 rounded-2xl shadow-sm flex items-center gap-5 border border-slate-200" onclick="selectOption('disposition', 'Scrap', 2)">
-                                <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-500 text-2xl border border-red-100"><i class="fas fa-trash-alt"></i></div>
-                                <div class="text-left flex-1">
-                                    <span class="block text-xl font-bold text-slate-800">Scrap</span>
-                                    <span class="block text-xs font-medium text-slate-500">Pieza desechada</span>
-                                </div>
-                            </button>
-                            
-                            <button class="option-btn glass-btn p-6 rounded-2xl shadow-sm flex items-center gap-5 border border-slate-200" onclick="selectOption('disposition', 'Retrabajo', 2)">
-                                <div class="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 text-2xl border border-amber-100"><i class="fas fa-tools"></i></div>
-                                <div class="text-left flex-1">
-                                    <span class="block text-xl font-bold text-slate-800">Retrabajo</span>
-                                    <span class="block text-xs font-medium text-slate-500">Pieza arreglada</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- PASO 2: Cantidad y Fotos -->
-                    <div class="min-w-full flex flex-col p-5 snap-center overflow-y-auto pb-24" id="step-2">
-                        <h4 class="text-lg font-bold mb-4 text-slate-800 text-center">Cantidades y Evidencia</h4>
-
-                        <div class="w-full bg-white p-6 rounded-2xl shadow-sm mb-4 border border-slate-100">
-                            <span class="block text-xs font-bold text-slate-500 mb-4 text-center uppercase tracking-widest">Cantidad</span>
-                            <div class="flex items-center justify-center gap-6">
-                                <button onclick="changeQuantity(-1)" class="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-xl font-bold text-slate-600 transition"><i class="fas fa-minus"></i></button>
-                                <span id="record-quantity" class="text-4xl font-black text-slate-800 w-16 text-center">1</span>
-                                <button onclick="changeQuantity(1)" class="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-xl font-bold text-blue-600 transition"><i class="fas fa-plus"></i></button>
-                            </div>
-                        </div>
-
-                        <div class="w-full bg-white p-5 rounded-2xl shadow-sm mb-6 flex flex-col items-center border border-slate-100">
-                            <span class="block text-xs font-bold text-slate-500 mb-3 text-center uppercase tracking-widest">Fotos (Opcional)</span>
-                            <label for="camera-input" class="w-full py-5 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-500 cursor-pointer hover:bg-slate-100 transition">
-                                <i class="fas fa-camera text-2xl"></i>
-                                <span class="text-xs font-bold">Añadir evidencia</span>
-                                <input type="file" id="camera-input" accept="image/*" multiple class="hidden" onchange="handlePhotos(event)">
-                            </label>
-                            <div id="photo-preview-container" class="flex gap-2 mt-3 overflow-x-auto w-full pb-1 hide-scrollbar"></div>
-                        </div>
-
-                        <button onclick="goToStep(3)" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-md text-base transition flex items-center justify-center gap-2 mt-auto">
-                            Revisar <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- PASO 3: Confirmación -->
-                    <div class="min-w-full flex flex-col p-5 snap-center overflow-y-auto pb-24" id="step-3">
-                        <h4 class="text-lg font-bold mb-4 text-slate-800 text-center">Confirmar Registro</h4>
+                    <!-- LADO IZQUIERDO: LEYENDA Y DONA -->
+                    <div class="w-full md:w-[350px] flex-shrink-0 flex flex-col relative border-b md:border-b-0 md:border-r border-gray-800 bg-[#15171e]">
                         
-                        <div class="w-full bg-white rounded-2xl shadow-sm p-5 border border-slate-100 mb-6">
-                            <div class="flex justify-between items-center py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm font-medium">Modelo</span>
-                                <span class="font-bold text-slate-800">DT housing</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm font-medium">Disposición</span>
-                                <span class="font-bold text-lg" id="summary-disposition">-</span>
-                            </div>
-                            <div class="flex justify-between items-center py-3 mt-1">
-                                <span class="text-slate-800 font-bold uppercase tracking-wide text-sm">Cantidad Total</span>
-                                <span class="font-black text-2xl text-blue-600" id="summary-quantity">1</span>
-                            </div>
+                        <div class="flex justify-center gap-4 p-2.5 px-3 border-b border-gray-800/80 bg-[#1a1c23]/50">
+                            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]"></div><span class="text-[9px] font-bold text-gray-300 tracking-wider uppercase">Scrap</span></div>
+                            <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]"></div><span class="text-[9px] font-bold text-gray-300 tracking-wider uppercase">Retrabajo</span></div>
                         </div>
 
-                        <button id="btn-save-record" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg text-lg transition flex items-center justify-center gap-2 mt-auto">
-                            <i class="fas fa-save"></i> Guardar Registro
-                        </button>
+                        <div class="flex-1 relative min-h-[220px]">
+                            <div class="absolute inset-0 p-2 flex items-center justify-center">
+                                <div id="chart-donut-container" class="w-full h-full relative z-0"></div>
+                            </div>
+                            
+                            <div id="donut-center" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[130px] h-[130px] rounded-full bg-[#1a1c23] border-2 border-gray-600 z-10 flex flex-col items-center justify-center pointer-events-none shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] transition-all duration-300">
+                                <!-- Contenido inyectado dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LADO DERECHO: GRÁFICA DE BARRAS / TENDENCIAS -->
+                    <div class="flex-1 relative w-full min-h-[250px] bg-[#12141a]">
+                        <div class="absolute inset-0 p-2">
+                            <div id="chart-trend-container" class="w-full h-full"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- FILA 3: TABLA DE DATOS DETALLADA -->
+        <div class="panel flex-1 flex flex-col min-h-[350px] lg:min-h-0 relative mt-3 md:mt-0" id="table-card-wrapper">
+            <div class="section-title text-gray-300 flex-shrink-0 bg-[#15171e] z-20">
+                <div class="flex items-center gap-3">
+                    <span>BITÁCORA DE REGISTROS</span>
+                    <button id="btn-clear-filter" onclick="clearInteractiveSelection()" class="hidden bg-red-900/40 hover:bg-red-800/60 text-red-400 border border-red-500/50 px-2 py-0.5 rounded text-[9px] font-bold transition items-center gap-1 shadow-sm">
+                        <i class="fas fa-times"></i> Quitar Filtro: <span id="lbl-active-filter"></span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="table-record-count" class="text-gray-400 bg-[#12141a] px-3 py-1 rounded text-[10px] border border-gray-700">0 EVENTOS</span>
+                    <button onclick="toggleTableFullscreen()" id="btn-table-expand" class="bg-[#2d313a] hover:bg-[#3f4452] text-gray-300 hover:text-white px-2.5 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 border border-gray-600" title="Expandir Bitácora">
+                        <i class="fas fa-expand-alt" id="expand-icon"></i> <span id="expand-text">Expandir</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-auto p-1 relative" id="table-scroll-area">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr>
+                            <th class="w-[20%]">FECHA / HORA</th>
+                            <th class="w-[20%]">MODELO</th>
+                            <th class="w-[20%]">DISPOSICIÓN</th>
+                            <th class="w-[20%] text-center">CANTIDAD</th>
+                            <th class="w-[20%]">INSPECTOR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Filas dinámicas -->
+                    </tbody>
+                </table>
+                <div id="table-empty-state" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#1a1c23]/90 backdrop-blur-sm z-10">
+                    <i class="fas fa-folder-open text-4xl text-gray-600 mb-3"></i>
+                    <p class="font-bold tracking-widest uppercase text-xs text-gray-500">Cero registros en los filtros actuales.</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Visor de Fotos -->
-    <div id="photo-viewer-modal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[300] hidden flex-col items-center justify-center fade-in p-4 cursor-pointer" onclick="closePhotoViewer()">
-        <button onclick="closePhotoViewer()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 rounded-full text-white flex items-center justify-center text-xl transition"><i class="fas fa-times"></i></button>
-        <img id="photo-viewer-img" src="" class="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl transition-opacity duration-300" onclick="event.stopPropagation()">
-    </div>
-
-    <!-- Notificaciones -->
-    <div id="top-alert" class="fixed top-0 left-0 w-full bg-slate-800 text-white p-3 text-center text-sm font-bold shadow-lg z-[350] transform -translate-y-full transition-transform duration-300 flex items-center justify-center gap-2">
-        <i class="fas fa-info-circle text-blue-400"></i> <span id="top-alert-msg"></span>
-    </div>
-
+    <!-- Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            initializeFirestore, persistentLocalCache, persistentMultipleTabManager, 
-            collection, addDoc, onSnapshot, deleteDoc, doc, setDoc, 
-            getDocFromServer, query, getDocs 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
+        let firebaseConfig = {
             apiKey: "AIzaSyC6-UX4jsL4nfyprVw1PviZzHwnKbWLipA",
             authDomain: "delta-9c75f.firebaseapp.com",
             projectId: "delta-9c75f",
@@ -359,430 +337,362 @@
             measurementId: "G-0QY5CJP0ED"
         };
 
-        // Constantes del Modelo
-        const MODEL_NAME = "DT housing";
-        const PART_NUM = "AEN75467211";
-        const COLOR = "Blanco";
-        
+        // Colección adaptada al nuevo modelo de DT Housing
         const COL_RECORDS = "rechazos_dt_housing";
-        const COL_APPROVALS = "approvals_dt_housing";
-        const COL_ADMINS = "delta_admins";
 
-        let db, auth, currentUser, recordsRef, approvalsRef, adminsRef;
         let allRecords = [];
-        let allAdmins = [];
-        let newRecordData = { disposition: null, quantity: 1, photos: [] };
-        let isDeleteMode = false;
-        let selectedForDeletion = new Set();
-        let inspectorName = '';
-        let pendingApprovalsList = [];
-        let skippedApprovalDocIds = new Set();
-        let activeApprovalDocId = null;
+        let chartDonut, chartTrend;
         
-        let deviceUuid = localStorage.getItem('delta_device_uuid') || ('dev_' + Math.random().toString(36).substring(2, 9));
-        localStorage.setItem('delta_device_uuid', deviceUuid);
+        let activeDispositionContext = null; 
+        let isTableExpanded = false;
+        
+        const baseColors = ['#ef4444', '#f59e0b']; // Scrap, Retrabajo
+        
+        const getLocalDateString = (offsetDays = 0) => {
+            const date = new Date();
+            date.setDate(date.getDate() + offsetDays);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        };
 
-        const CORRECT_PIN = "2486";
-        let isAdmin = localStorage.getItem('delta_is_admin') === 'true';
-        let adminSavedName = localStorage.getItem('delta_admin_name') || '';
+        setInterval(() => {
+            document.getElementById('header-time').textContent = new Date().toLocaleTimeString('es-MX', {hour12: false});
+        }, 1000);
 
-        function initApp() {
-            document.getElementById('current-date-display').textContent = new Date().toLocaleDateString('es-MX', { weekday: 'long', month: 'long', day: 'numeric' });
+        window.setDateRange = function(type) {
+            document.getElementById('date-end').value = getLocalDateString(0); 
+            if (type === 'today') document.getElementById('date-start').value = getLocalDateString(0);
+            else if (type === '7days') document.getElementById('date-start').value = getLocalDateString(-6);
+            else if (type === '30days') document.getElementById('date-start').value = getLocalDateString(-29);
             
+            if(allRecords.length > 0) processDataAndRender();
+        };
+        
+        document.getElementById('date-start').value = getLocalDateString(0);
+        document.getElementById('date-end').value = getLocalDateString(0);
+
+        async function initDashboard() {
             try {
                 const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
-
-                recordsRef = collection(db, COL_RECORDS);
-                approvalsRef = collection(db, COL_APPROVALS);
-                adminsRef = collection(db, COL_ADMINS);
-
-                signInAnonymously(auth).then(() => {
-                    currentUser = auth.currentUser;
-                    setupListeners();
-                });
-            } catch (error) { console.error(error); }
-        }
-
-        function setupListeners() {
-            onSnapshot(adminsRef, (snap) => {
-                allAdmins = []; let isFound = false;
-                snap.forEach(d => {
-                    allAdmins.push({ id: d.id, ...d.data() });
-                    if (d.id === deviceUuid) { isFound = true; adminSavedName = d.data().name || adminSavedName; }
-                });
-                isAdmin = isFound;
-                localStorage.setItem('delta_is_admin', isAdmin ? 'true' : 'false');
-                updateUIForAdmin();
-                if (!isAdmin && !localStorage.getItem('delta_prompted_admin')) {
-                    document.getElementById('admin-onboarding-modal').classList.remove('hidden');
-                    document.getElementById('admin-onboarding-modal').classList.add('flex');
-                }
-            });
-
-            onSnapshot(recordsRef, (snapshot) => {
-                allRecords = [];
-                snapshot.forEach(docSnap => allRecords.push({ id: docSnap.id, ...docSnap.data() }));
-                updateDashboard(); renderBitacora(); updateSyncStatus();
-            });
-
-            onSnapshot(approvalsRef, (snapshot) => {
-                pendingApprovalsList = [];
-                snapshot.forEach(docSnap => { if (docSnap.data().status === 'pending') pendingApprovalsList.push({ id: docSnap.id, ...docSnap.data() }); });
-                syncApprovalModalState();
-            });
-
-            checkInspector();
-        }
-
-        function updateUIForAdmin() {
-            const btn = document.getElementById('btn-admin-dashboard');
-            if(isAdmin) { btn.classList.remove('hidden'); btn.classList.add('flex'); }
-            else { btn.classList.add('hidden'); btn.classList.remove('flex'); }
-            renderAdminModalContent();
-        }
-
-        function checkInspector() {
-            const stored = localStorage.getItem('delta_last_name');
-            if (stored) { inspectorName = stored; } 
-            else if (isAdmin && adminSavedName) { inspectorName = adminSavedName; }
-            
-            document.getElementById('current-inspector-display').textContent = inspectorName || 'Nadie asignado';
-            if (!inspectorName) openInspectorModal();
-        }
-
-        window.openInspectorModal = () => {
-            document.getElementById('inspector-name-input').value = inspectorName;
-            document.getElementById('inspector-name-modal').classList.remove('hidden'); document.getElementById('inspector-name-modal').classList.add('flex');
-        };
-        window.closeInspectorModal = () => {
-            document.getElementById('inspector-name-modal').classList.add('hidden'); document.getElementById('inspector-name-modal').classList.remove('flex');
-        };
-        window.saveInspectorName = () => {
-            const name = document.getElementById('inspector-name-input').value.trim();
-            if(!name) return showNotification("Ingresa un nombre.");
-            inspectorName = name; localStorage.setItem('delta_last_name', name);
-            document.getElementById('current-inspector-display').textContent = name;
-            closeInspectorModal();
-        };
-
-        // --- WIZARD ---
-        window.openWizard = () => {
-            if(!inspectorName) { openInspectorModal(); return showNotification("Configura tu nombre primero."); }
-            newRecordData = { disposition: null, quantity: 1, photos: [] };
-            document.querySelectorAll('.option-btn.selected').forEach(b => b.classList.remove('selected'));
-            document.getElementById('record-quantity').textContent = '1';
-            document.getElementById('photo-preview-container').innerHTML = '';
-            document.getElementById('wizard-modal').classList.remove('hidden'); document.getElementById('wizard-modal').classList.add('flex');
-            goToStep(1);
-        };
-        
-        window.closeWizard = () => { document.getElementById('wizard-modal').classList.add('hidden'); document.getElementById('wizard-modal').classList.remove('flex'); };
-
-        window.selectOption = (cat, val, nextStep) => {
-            newRecordData[cat] = val;
-            const container = event.currentTarget.closest('.snap-center');
-            container.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
-            
-            if(cat === 'disposition') {
-                const el = document.getElementById('summary-disposition');
-                el.textContent = val;
-                el.className = val === 'Scrap' ? 'font-bold text-red-600 text-lg' : 'font-bold text-amber-600 text-lg';
-            }
-            goToStep(nextStep);
-        };
-
-        window.changeQuantity = (amt) => {
-            newRecordData.quantity = Math.max(1, newRecordData.quantity + amt);
-            document.getElementById('record-quantity').textContent = newRecordData.quantity;
-            document.getElementById('summary-quantity').textContent = newRecordData.quantity;
-        };
-
-        window.goToStep = (n) => {
-            const titles = ["Disposición", "Evidencia", "Confirmar"];
-            document.getElementById('wizard-step-text').textContent = `Paso ${n}: ${titles[n-1]}`;
-            document.getElementById('wizard-progress').style.width = `${(n / 3) * 100}%`;
-            document.getElementById(`step-${n}`).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        };
-
-        window.handlePhotos = (e) => {
-            if(!e.target.files) return;
-            for (let i = 0; i < e.target.files.length; i++) {
-                const file = e.target.files[i];
-                if(file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        newRecordData.photos.push(ev.target.result);
-                        renderPhotoPreviews();
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-            e.target.value = '';
-        };
-
-        function renderPhotoPreviews() {
-            const c = document.getElementById('photo-preview-container');
-            c.innerHTML = newRecordData.photos.map((p, i) => `
-                <div class="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden border border-slate-200">
-                    <img src="${p}" class="w-full h-full object-cover">
-                    <button onclick="removePhoto(${i})" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl"><i class="fas fa-times"></i></button>
-                </div>
-            `).join('');
-        }
-        window.removePhoto = (i) => { newRecordData.photos.splice(i,1); renderPhotoPreviews(); };
-
-        document.getElementById('btn-save-record').addEventListener('click', async () => {
-            if(!newRecordData.disposition) return showNotification("Faltan datos.");
-            const btn = document.getElementById('btn-save-record');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...'; btn.disabled = true;
-
-            const now = new Date();
-            const dateString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-
-            try {
-                await addDoc(recordsRef, {
-                    ...newRecordData, model: MODEL_NAME, part: PART_NUM, color: COLOR,
-                    timestamp: Date.now(), dateString, inspectorName
-                });
-                closeWizard(); showNotification("¡Registro exitoso!");
-            } catch(e) { console.error(e); showNotification("Error al guardar."); }
-            finally { btn.innerHTML = '<i class="fas fa-save"></i> Guardar Registro'; btn.disabled = false; }
-        });
-
-        // --- DASHBOARD ---
-        function getLocalDateString() {
-            const now = new Date();
-            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        }
-
-        function updateDashboard() {
-            const todayStr = getLocalDateString();
-            const todayRecords = allRecords.filter(r => r.dateString === todayStr);
-            
-            let total = 0, scrap = 0, retrabajo = 0;
-            todayRecords.forEach(r => {
-                const q = r.quantity || 1;
-                total += q;
-                if(r.disposition === 'Scrap') scrap += q;
-                else retrabajo += q;
-            });
-
-            document.getElementById('stat-total').textContent = total;
-            document.getElementById('stat-scrap').textContent = scrap;
-            document.getElementById('stat-retrabajo').textContent = retrabajo;
-        }
-
-        function renderBitacora() {
-            const c = document.getElementById('bitacora-list');
-            c.innerHTML = '';
-            const records = [...allRecords].sort((a,b) => b.timestamp - a.timestamp);
-
-            if(records.length === 0) {
-                c.innerHTML = `<div class="text-center py-8 text-slate-400"><i class="fas fa-clipboard-list text-3xl mb-2"></i><p class="text-sm font-medium">Sin registros</p></div>`;
-                return;
-            }
-
-            records.forEach(r => {
-                const isSelected = selectedForDeletion.has(r.id);
-                const isScrap = r.disposition === 'Scrap';
-                const colorCls = isScrap ? 'text-red-600 bg-red-50 border-red-100' : 'text-amber-600 bg-amber-50 border-amber-100';
-                const icon = isScrap ? 'fa-trash-alt' : 'fa-tools';
+                const auth = getAuth(app);
+                const db = getFirestore(app);
                 
-                const card = document.createElement('div');
-                card.className = `p-3 rounded-2xl flex items-center gap-3 border ${isDeleteMode ? (isSelected ? 'bg-red-50 border-red-300' : 'bg-white border-slate-100') : 'bg-white border-slate-100 shadow-sm'}`;
-                if(isDeleteMode) card.onclick = () => toggleRecordSelection(r.id);
+                await signInAnonymously(auth);
+                const rechazosRef = collection(db, COL_RECORDS);
 
-                let checkHtml = isDeleteMode ? `<div class="w-5 h-5 rounded border flex flex-shrink-0 items-center justify-center ${isSelected ? 'bg-red-500 border-red-500 text-white' : 'border-slate-300'}">${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}</div>` : '';
+                onSnapshot(rechazosRef, (snapshot) => {
+                    allRecords = [];
+                    snapshot.forEach(docSnap => allRecords.push({ id: docSnap.id, ...docSnap.data() }));
+                    
+                    const st = document.getElementById('sync-status');
+                    st.textContent = 'DATA LIVE'; st.style.color = '#10b981';
+                    document.getElementById('live-dot-indicator').style.backgroundColor = '#10b981';
+                    
+                    processDataAndRender();
+                }, (error) => {
+                    console.error(error);
+                    document.getElementById('sync-status').textContent = 'OFFLINE';
+                    document.getElementById('sync-status').style.color = '#ef4444';
+                    document.getElementById('live-dot-indicator').style.backgroundColor = '#ef4444';
+                });
+            } catch (error) {
+                console.error(error);
+                document.getElementById('sync-status').textContent = 'ERROR DB';
+            }
+        }
+
+        window.handleDropdownFilter = function() {
+            const val = document.getElementById('filter-disposition').value;
+            if (val === 'ALL') {
+                window.clearInteractiveSelection();
+            } else {
+                activeDispositionContext = val;
+                document.getElementById('lbl-active-filter').textContent = `${val}`;
+                document.getElementById('btn-clear-filter').classList.remove('hidden');
+                processDataAndRender();
+            }
+        };
+
+        window.clearInteractiveSelection = function() {
+            activeDispositionContext = null;
+            document.getElementById('btn-clear-filter').classList.add('hidden');
+            document.getElementById('filter-disposition').value = 'ALL'; 
+            
+            if(chartDonut) {
+                chartDonut.updateOptions({ colors: baseColors });
+                setTimeout(() => {
+                    const paths = document.querySelectorAll('.apexcharts-pie-series path');
+                    paths.forEach(p => {
+                        p.removeAttribute('selected');
+                        p.removeAttribute('data:selected');
+                    });
+                }, 10);
+            }
+            processDataAndRender();
+        }
+
+        function initCharts() {
+            const commonOptions = {
+                chart: { background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 400 } },
+                theme: { mode: 'dark' },
+                grid: { borderColor: '#2d313a', strokeDashArray: 3, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
+                tooltip: { theme: 'dark' }
+            };
+
+            const optionsDonut = {
+                ...commonOptions,
+                series: [0, 0],
+                labels: ['Scrap', 'Retrabajo'],
+                chart: { 
+                    ...commonOptions.chart, 
+                    type: 'donut', 
+                    height: '100%', 
+                    width: '100%',
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const label = config.w.globals.labels[config.dataPointIndex];
+                            if (activeDispositionContext === label) {
+                                window.clearInteractiveSelection();
+                            } else {
+                                activeDispositionContext = label;
+                                document.getElementById('filter-disposition').value = label;
+                                document.getElementById('lbl-active-filter').textContent = `${label}`;
+                                document.getElementById('btn-clear-filter').classList.remove('hidden');
+                                processDataAndRender();
+                            }
+                        }
+                    }
+                },
+                plotOptions: {
+                    pie: { 
+                        expandOnClick: false,
+                        donut: { size: '75%', labels: { show: false } } 
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { show: true, colors: ['#15171e'], width: 3 }, 
+                legend: { show: false }, 
+                tooltip: { enabled: true, theme: 'dark', y: { formatter: val => `${val} Unidades` } },
+                colors: baseColors,
+                states: {
+                    hover: { filter: { type: 'lighten', value: 0.1 } }, 
+                    active: { filter: { type: 'none' } } 
+                }
+            };
+            chartDonut = new ApexCharts(document.querySelector("#chart-donut-container"), optionsDonut);
+            chartDonut.render();
+
+            const optionsTrend = {
+                ...commonOptions,
+                series: [],
+                chart: { ...commonOptions.chart, type: 'line', stacked: false, height: '100%', width: '100%' },
+                stroke: { width: [3, 3], curve: 'smooth' }, 
+                plotOptions: { bar: { columnWidth: '45%', borderRadius: 2 } },
+                dataLabels: { enabled: false }, 
+                xaxis: { 
+                    type: 'category', categories: [], 
+                    labels: { style: { colors: '#64748b', fontSize: '9px', fontWeight: 700 } }, 
+                    axisBorder: { show: false }, axisTicks: { show: false } 
+                },
+                yaxis: { show: true, labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 700 } } },
+                legend: { show: false }, 
+            };
+            optionsTrend.grid.padding.left = 10;
+            chartTrend = new ApexCharts(document.querySelector("#chart-trend-container"), optionsTrend);
+            chartTrend.render();
+        }
+
+        window.processDataAndRender = function() {
+            const startStr = document.getElementById('date-start').value;
+            const endStr = document.getElementById('date-end').value;
+
+            if(!startStr || !endStr) return;
+            if (startStr > endStr) { document.getElementById('date-start').value = endStr; return processDataAndRender(); }
+
+            document.getElementById('lbl-trend-range').textContent = `${startStr.substring(5)} al ${endStr.substring(5)}`;
+
+            let baseRecords = allRecords.filter(r => r.dateString >= startStr && r.dateString <= endStr);
+            
+            let activeTableRecords = baseRecords;
+            if(activeDispositionContext) {
+                activeTableRecords = activeTableRecords.filter(r => r.disposition === activeDispositionContext);
+            }
+
+            let stats = { total: 0, scrap: 0, retrabajo: 0 };
+
+            baseRecords.forEach(r => {
+                let qty = parseInt(r.quantity) || 1; 
+                let disp = r.disposition || 'Scrap';
                 
-                card.innerHTML = `
-                    ${checkHtml}
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border ${colorCls}"><i class="fas ${icon}"></i></div>
-                    <div class="flex-1 overflow-hidden">
-                        <div class="flex justify-between items-start">
-                            <span class="font-bold text-sm text-slate-800">${r.disposition}</span>
-                            <span class="text-[10px] text-slate-400">${new Date(r.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
-                        </div>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">Qty: ${r.quantity}</span>
-                        </div>
-                    </div>
+                if(disp === 'Scrap') stats.scrap += qty; else stats.retrabajo += qty;
+            });
+
+            stats.total = activeDispositionContext ? (activeDispositionContext === 'Scrap' ? stats.scrap : stats.retrabajo) : (stats.scrap + stats.retrabajo);
+            
+            document.getElementById('kpi-total').textContent = stats.total;
+            document.getElementById('kpi-registros').textContent = activeTableRecords.length;
+            
+            const opactiyLogic = (target) => (!activeDispositionContext || activeDispositionContext === target) ? '1' : '0.3';
+            document.getElementById('kpi-panel-scrap').style.opacity = opactiyLogic('Scrap'); document.getElementById('kpi-scrap').textContent = stats.scrap;
+            document.getElementById('kpi-panel-retrabajo').style.opacity = opactiyLogic('Retrabajo'); document.getElementById('kpi-retrabajo').textContent = stats.retrabajo;
+
+            if (chartDonut) {
+                chartDonut.updateSeries([stats.scrap, stats.retrabajo]);
+                
+                if (activeDispositionContext) {
+                    const idx = ['Scrap', 'Retrabajo'].indexOf(activeDispositionContext);
+                    const focusedColors = baseColors.map((color, index) => index === idx ? color : '#2d313a');
+                    chartDonut.updateOptions({ colors: focusedColors });
+                } else {
+                    chartDonut.updateOptions({ colors: baseColors });
+                }
+            }
+
+            const centerEl = document.getElementById('donut-center');
+
+            if (!activeDispositionContext) {
+                centerEl.style.boxShadow = 'inset 0 0 15px rgba(0,0,0,0.8)';
+                centerEl.style.borderColor = '#4b5563';
+                
+                centerEl.innerHTML = `
+                    <i class="fas fa-hand-pointer text-blue-400 text-3xl md:text-4xl mb-1.5 pulse-icon drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"></i>
+                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest leading-tight text-center px-1 mt-1">Filtrar<br>Datos</span>
                 `;
-                c.appendChild(card);
+
+                if (chartTrend) {
+                    let trendLabels = [];
+                    let currDate = new Date(startStr + 'T12:00:00'); let endDateObj = new Date(endStr + 'T12:00:00');
+                    if (Math.ceil((endDateObj - currDate) / (1000 * 60 * 60 * 24)) > 60) { currDate = new Date(endDateObj); currDate.setDate(currDate.getDate() - 60); }
+
+                    let baseSeries = [
+                        {name:'Scrap', type:'line', data:[], color:'#ef4444'}, 
+                        {name:'Retrabajo', type:'line', data:[], color:'#f59e0b'}
+                    ];
+                    
+                    while (currDate <= endDateObj) {
+                        const dStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                        trendLabels.push(dStr.substring(5));
+                        const dayRecords = baseRecords.filter(r => r.dateString === dStr);
+                        
+                        let daily = {'Scrap':0, 'Retrabajo':0};
+                        dayRecords.forEach(r => daily[r.disposition || 'Scrap'] += (parseInt(r.quantity)||1));
+                        baseSeries.forEach(s => s.data.push(daily[s.name]));
+                        currDate.setDate(currDate.getDate() + 1);
+                    }
+
+                    chartTrend.updateOptions({ chart: { stacked: false }, xaxis: { categories: trendLabels }, stroke: { width: [3,3], curve: 'smooth' } });
+                    chartTrend.updateSeries(baseSeries);
+                }
+
+            } else {
+                const activeColor = activeDispositionContext === 'Scrap' ? '#ef4444' : '#f59e0b';
+                centerEl.style.boxShadow = `0 0 25px ${activeColor}80, inset 0 0 15px rgba(0,0,0,0.9)`;
+                centerEl.style.borderColor = activeColor;
+                
+                let pClass = activeDispositionContext === 'Scrap' ? 'text-red-400 bg-red-900/50' : 'text-amber-400 bg-amber-900/50';
+
+                let centerHtml = `<span class="text-[12px] font-black px-4 py-1 rounded-full ${pClass} mb-1.5 shadow-sm tracking-widest border border-current">${activeDispositionContext}</span>`;
+                centerEl.innerHTML = centerHtml;
+
+                if (chartTrend) {
+                    let trendLabels = [];
+                    let currDate = new Date(startStr + 'T12:00:00'); let endDateObj = new Date(endStr + 'T12:00:00');
+                    if (Math.ceil((endDateObj - currDate) / (1000 * 60 * 60 * 24)) > 60) { currDate = new Date(endDateObj); currDate.setDate(currDate.getDate() - 60); }
+
+                    let barSeries = { name: `Volumen ${activeDispositionContext}`, type: 'column', data: [], color: activeColor };
+
+                    while (currDate <= endDateObj) {
+                        const dStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                        trendLabels.push(dStr.substring(5));
+                        
+                        const dayRecords = baseRecords.filter(r => r.dateString === dStr && r.disposition === activeDispositionContext);
+                        
+                        let totalQty = 0;
+                        dayRecords.forEach(r => { totalQty += (parseInt(r.quantity) || 1); });
+                        
+                        barSeries.data.push(totalQty);
+                        currDate.setDate(currDate.getDate() + 1);
+                    }
+                    
+                    chartTrend.updateOptions({ 
+                        chart: { stacked: false }, 
+                        xaxis: { categories: trendLabels }, 
+                        stroke: { width: [0], curve: 'smooth' },
+                        fill: { opacity: [1] }
+                    });
+                    chartTrend.updateSeries([barSeries]);
+                }
+            }
+
+            renderTable(activeTableRecords);
+        };
+
+        window.toggleTableFullscreen = function() {
+            isTableExpanded = !isTableExpanded;
+            const wrapper = document.getElementById('table-card-wrapper');
+            const icon = document.getElementById('expand-icon');
+            const text = document.getElementById('expand-text');
+            const scrollArea = document.getElementById('table-scroll-area');
+
+            if (isTableExpanded) {
+                wrapper.classList.add('table-fullscreen');
+                icon.className = 'fas fa-compress-alt';
+                text.textContent = 'Minimizar';
+                scrollArea.style.maxHeight = 'none';
+            } else {
+                wrapper.classList.remove('table-fullscreen');
+                icon.className = 'fas fa-expand-alt';
+                text.textContent = 'Expandir';
+            }
+        };
+
+        function renderTable(records) {
+            const tbody = document.getElementById('table-body');
+            const emptyState = document.getElementById('table-empty-state');
+            document.getElementById('table-record-count').textContent = `${records.length} EVENTOS`;
+
+            if (records.length === 0) { tbody.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
+            emptyState.classList.add('hidden');
+            
+            const sortedRecords = [...records].sort((a, b) => b.timestamp - a.timestamp);
+
+            tbody.innerHTML = sortedRecords.map(r => {
+                const dObj = new Date(r.timestamp);
+                const timeStr = `${dObj.toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit'})} <span class="text-gray-600 mx-1">|</span> ${dObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+                
+                let badgeColor = r.disposition === 'Scrap' ? 'bg-red-900/30 text-red-400 border-red-800/50' : 'bg-amber-900/30 text-amber-400 border-amber-800/50';
+
+                return `<tr>
+                    <td class="font-condensed text-gray-400 text-[11px]">${timeStr}</td>
+                    <td class="font-bold text-gray-300 text-xs">${r.model || 'DT housing'} <br><span class="text-[9px] text-gray-500">${r.part || 'AEN75467211'}</span></td>
+                    <td><span class="${badgeColor} border px-2.5 py-1 rounded text-[9px] tracking-widest uppercase shadow-sm font-bold">${r.disposition}</span></td>
+                    <td class="text-center font-condensed text-white text-sm font-bold bg-[#1a1c23]/50 border-x border-[#2d313a]">${r.quantity || 1}</td>
+                    <td class="text-gray-500 text-[10px] uppercase font-bold truncate max-w-[120px]"><i class="fas fa-user-tag text-gray-700 mr-1"></i> ${r.inspectorName || 'ANÓNIMO'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.downloadCSV = function() {
+            if (allRecords.length === 0) return alert("No hay datos para exportar.");
+            const startStr = document.getElementById('date-start').value; const endStr = document.getElementById('date-end').value;
+            
+            let exportData = allRecords.filter(r => r.dateString >= startStr && r.dateString <= endStr);
+            if (activeDispositionContext) exportData = exportData.filter(r => r.disposition === activeDispositionContext);
+            
+            const headers = ['FECHA', 'HORA', 'MODELO', 'DISPOSICION', 'CANTIDAD', 'INSPECTOR'];
+            const rows = exportData.sort((a, b) => b.timestamp - a.timestamp).map(r => {
+                const d = new Date(r.timestamp);
+                return [d.toLocaleDateString('es-MX'), d.toLocaleTimeString('es-MX'), r.model||'DT housing', r.disposition, r.quantity||1, r.inspectorName||'Anónimo'].map(v => `"${v}"`).join(',');
             });
-        }
 
-        // --- BORRADO ---
-        window.toggleDeleteMode = () => {
-            isDeleteMode = !isDeleteMode; selectedForDeletion.clear();
-            document.getElementById('normal-actions').classList.toggle('hidden', isDeleteMode);
-            document.getElementById('delete-actions').classList.toggle('hidden', !isDeleteMode);
-            document.getElementById('delete-actions').classList.toggle('flex', isDeleteMode);
-            updateDeleteBtn(); renderBitacora();
+            const link = document.createElement("a");
+            link.setAttribute("href", URL.createObjectURL(new Blob(["\ufeff", [headers.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' })));
+            link.setAttribute("download", `Export_DTHousing_${activeDispositionContext||'GLOBAL'}_${startStr}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
-        window.toggleRecordSelection = (id) => {
-            selectedForDeletion.has(id) ? selectedForDeletion.delete(id) : selectedForDeletion.add(id);
-            updateDeleteBtn(); renderBitacora();
-        };
+        window.toggleFullscreen = function() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); };
+        document.addEventListener('fullscreenchange', () => { document.getElementById('btn-fullscreen').innerHTML = !document.fullscreenElement ? '<i class="fas fa-expand text-gray-400"></i>' : '<i class="fas fa-compress text-blue-400"></i>'; });
 
-        function updateDeleteBtn() {
-            const b = document.getElementById('btn-confirm-delete');
-            b.textContent = `Borrar (${selectedForDeletion.size})`;
-            if(selectedForDeletion.size > 0) b.classList.remove('opacity-50','pointer-events-none');
-            else b.classList.add('opacity-50','pointer-events-none');
-        }
-
-        window.requestDeletion = async () => {
-            if(selectedForDeletion.size === 0) return;
-            const items = [];
-            selectedForDeletion.forEach(id => {
-                const r = allRecords.find(x => x.id === id);
-                if(r) items.push({ id: r.id, quantity: r.quantity, disp: r.disposition });
-            });
-            try {
-                await addDoc(approvalsRef, { items, status: 'pending', timestamp: Date.now() });
-                showNotification("Solicitud de borrado enviada a admin.");
-                toggleDeleteMode();
-            } catch(e) { console.error(e); }
-        };
-
-        // --- ADMIN LOGIN ---
-        window.startAdminRegistration = () => {
-            localStorage.setItem('delta_prompted_admin', 'true');
-            document.getElementById('admin-onboarding-modal').classList.add('hidden'); document.getElementById('admin-onboarding-modal').classList.remove('flex');
-            document.getElementById('pin-modal').classList.remove('hidden'); document.getElementById('pin-modal').classList.add('flex');
-            document.getElementById('admin-name-input').value = adminSavedName || inspectorName;
-            renderAdminModalContent();
-        };
-        window.skipAdminOnboarding = () => {
-            localStorage.setItem('delta_prompted_admin', 'true');
-            document.getElementById('admin-onboarding-modal').classList.add('hidden'); document.getElementById('admin-onboarding-modal').classList.remove('flex');
-        };
-        window.closePinModal = () => { document.getElementById('pin-modal').classList.add('hidden'); document.getElementById('pin-modal').classList.remove('flex'); };
-
-        function renderAdminModalContent() {
-            const list = document.getElementById('admin-slots-list');
-            if(!list) return;
-            list.innerHTML = allAdmins.map(a => `
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
-                    <span class="text-sm font-bold text-slate-700">${a.name} ${a.id===deviceUuid?'(Tú)':''}</span>
-                    <button onclick="promptRemoveAdmin('${a.id}')" class="text-xs text-red-500 px-2 py-1 rounded bg-red-50">Quitar</button>
-                </div>
-            `).join('');
-            document.getElementById('admin-register-section').style.display = isAdmin ? 'none' : 'flex';
-        }
-
-        window.verifyAndRegisterAdmin = async () => {
-            const name = document.getElementById('admin-name-input').value.trim();
-            const pin = document.getElementById('pin-input').value;
-            if(!name || pin !== CORRECT_PIN) return showNotification("Datos inválidos.");
-            try {
-                await setDoc(doc(adminsRef, deviceUuid), { name, uuid: deviceUuid, registeredAt: Date.now() });
-                adminSavedName = name; localStorage.setItem('delta_admin_name', name);
-                document.getElementById('pin-input').value = '';
-                showNotification("Admin registrado.");
-            } catch(e) { console.error(e); }
-        };
-
-        window.promptRemoveAdmin = (id) => {
-            document.getElementById('admin-main-view').classList.add('hidden');
-            document.getElementById('admin-delete-confirm-view').classList.remove('hidden');
-            document.getElementById('admin-delete-confirm-view').classList.add('flex');
-            document.getElementById('admin-delete-confirm-view').dataset.targetId = id;
-        };
-        window.cancelRemoveAdmin = () => {
-            document.getElementById('admin-delete-confirm-view').classList.add('hidden');
-            document.getElementById('admin-main-view').classList.remove('hidden');
-        };
-        window.confirmRemoveAdmin = async () => {
-            const pin = document.getElementById('admin-delete-pin-input').value;
-            if(pin !== CORRECT_PIN) return showNotification("PIN incorrecto.");
-            const id = document.getElementById('admin-delete-confirm-view').dataset.targetId;
-            try {
-                await deleteDoc(doc(adminsRef, id));
-                if(id === deviceUuid) { isAdmin = false; localStorage.setItem('delta_is_admin','false'); }
-                cancelRemoveAdmin(); showNotification("Admin removido.");
-            } catch(e) { console.error(e); }
-        };
-
-        // --- APROBACIONES ADMIN ---
-        function syncApprovalModalState() {
-            const btn = document.getElementById('btn-pending-approvals-lobby');
-            if(isAdmin && pendingApprovalsList.length > 0) {
-                btn.classList.remove('hidden'); btn.classList.add('flex');
-                document.getElementById('lobby-pending-count').textContent = pendingApprovalsList.length;
-            } else { btn.classList.add('hidden'); btn.classList.remove('flex'); }
-        }
-
-        window.openPendingApprovalsManually = () => {
-            if(pendingApprovalsList.length === 0) return;
-            skippedApprovalDocIds.clear();
-            const first = pendingApprovalsList[0];
-            activeApprovalDocId = first.id;
-            
-            document.getElementById('approval-list-view').classList.remove('hidden'); document.getElementById('approval-list-view').classList.add('flex');
-            document.getElementById('approval-pin-view').classList.add('hidden'); document.getElementById('approval-pin-view').classList.remove('flex');
-            
-            document.getElementById('approval-items-container').innerHTML = first.items.map(item => `
-                <div class="p-2 border border-slate-200 rounded-lg bg-slate-50 text-sm">
-                    <span class="font-bold block">${item.disp}</span>
-                    <span class="text-xs text-slate-500">Cantidad: ${item.quantity}</span>
-                </div>
-            `).join('');
-            
-            document.getElementById('admin-approval-modal').classList.remove('hidden'); document.getElementById('admin-approval-modal').classList.add('flex');
-        };
-
-        window.skipCurrentApprovalModal = () => {
-            document.getElementById('admin-approval-modal').classList.add('hidden'); document.getElementById('admin-approval-modal').classList.remove('flex');
-        };
-
-        window.rejectApprovalRequest = async () => {
-            if(!activeApprovalDocId) return;
-            await deleteDoc(doc(approvalsRef, activeApprovalDocId));
-            skipCurrentApprovalModal(); showNotification("Solicitud rechazada.");
-        };
-
-        window.showApprovalPinView = () => {
-            document.getElementById('approval-list-view').classList.add('hidden'); document.getElementById('approval-list-view').classList.remove('flex');
-            document.getElementById('approval-pin-view').classList.remove('hidden'); document.getElementById('approval-pin-view').classList.add('flex');
-        };
-        window.cancelApprovalPinView = () => {
-            document.getElementById('approval-pin-view').classList.add('hidden'); document.getElementById('approval-pin-view').classList.remove('flex');
-            document.getElementById('approval-list-view').classList.remove('hidden'); document.getElementById('approval-list-view').classList.add('flex');
-        };
-
-        window.executeApprovedDeletion = async () => {
-            const pin = document.getElementById('approval-pin-input').value;
-            if(pin !== CORRECT_PIN) return showNotification("PIN incorrecto.");
-            
-            const request = pendingApprovalsList.find(p => p.id === activeApprovalDocId);
-            if(!request) return;
-
-            try {
-                for(const item of request.items) { await deleteDoc(doc(recordsRef, item.id)); }
-                await deleteDoc(doc(approvalsRef, activeApprovalDocId));
-                skipCurrentApprovalModal(); showNotification("Registros eliminados.");
-            } catch(e) { console.error(e); showNotification("Error borrando."); }
-        };
-
-        function showNotification(msg) {
-            const al = document.getElementById('top-alert');
-            document.getElementById('top-alert-msg').textContent = msg;
-            al.style.transform = 'translateY(0)';
-            setTimeout(() => al.style.transform = 'translateY(-100%)', 3000);
-        }
-
-        function updateSyncStatus() {
-            const s = document.getElementById('cloud-status');
-            s.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
-            s.classList.add('sync-flash'); setTimeout(() => s.classList.remove('sync-flash'), 1000);
-        }
-
-        initApp();
+        setTimeout(() => { initCharts(); initDashboard(); }, 100);
     </script>
 </body>
 </html>
